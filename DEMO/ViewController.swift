@@ -1,5 +1,4 @@
 import UIKit
-
 class ViewController: UIViewController {
     
     @IBOutlet weak var imageView: UIImageView!
@@ -40,7 +39,7 @@ class ViewController: UIViewController {
     }
     
     func setupLineView() {
-        view.addSubview(lineView)
+        imageView.addSubview(lineView)
         lineView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             lineView.topAnchor.constraint(equalTo: imageView.topAnchor),
@@ -50,8 +49,9 @@ class ViewController: UIViewController {
         ])
         lineView.backgroundColor = .clear
     }
+
     func setupLineView2() {
-        view.addSubview(lineView2)
+        imageView.addSubview(lineView2)
         lineView2.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             lineView2.topAnchor.constraint(equalTo: imageView.topAnchor),
@@ -61,27 +61,56 @@ class ViewController: UIViewController {
         ])
         lineView2.backgroundColor = .clear
     }
+
     func updateLine(lineView: LineView, start: CGPoint, end: CGPoint) {
         lineView.start = start
         lineView.end = end
         lineView.setNeedsDisplay()
     }
-    func connectLabels() {
-        let startPoint1 = CGPoint(x: label1.frame.midX, y: label1.frame.midY)
-        let endPoint1 = CGPoint(x: label2.frame.midX, y: label2.frame.midY)
-        updateLine(lineView: lineView, start: startPoint1, end: endPoint1)
-
-        let startPoint2 = CGPoint(x: imageView.frame.midX, y: imageView.frame.midY)
-        let endPoint2 = CGPoint(x: label2.frame.midX, y: label2.frame.midY)
-        updateLine(lineView: lineView2, start: startPoint2, end: endPoint2)
+    func pointInImageView(xPercentage: CGFloat, yPercentage: CGFloat) -> CGPoint {
+        let x = imageView.bounds.width * xPercentage
+        let y = imageView.bounds.height * yPercentage
+        return CGPoint(x: x, y: y)
     }
+
+    func connectLabels() {
+        DispatchQueue.main.async {
+            let startPoint1 = CGPoint(x: self.imageView.bounds.width * 0.5, y: self.imageView.bounds.height * 0.5)
+            let endPoint1 = self.label1.convert(CGPoint(x: self.label1.bounds.midX, y: self.label1.bounds.midY), to: self.imageView)
+
+            let startPoint2 = CGPoint(x: self.imageView.bounds.width * 0.5, y: self.imageView.bounds.height * 0.5)
+            let endPoint2 = self.label2.convert(CGPoint(x: self.label2.bounds.midX, y: self.label2.bounds.midY), to: self.imageView)
+
+            let percentage1: CGFloat = 0.9 // Ajusta este valor según la cantidad de espacio que deseas entre la línea y el label1
+            let dx1 = endPoint1.x - startPoint1.x
+            let dy1 = endPoint1.y - startPoint1.y
+            let adjustedEndPoint1 = CGPoint(x: startPoint1.x + dx1 * percentage1, y: startPoint1.y + dy1 * percentage1)
+
+            let percentage2: CGFloat = 0.9 // Ajusta este valor según la cantidad de espacio que deseas entre la línea y el label2
+            let dx2 = endPoint2.x - startPoint2.x
+            let dy2 = endPoint2.y - startPoint2.y
+            let adjustedEndPoint2 = CGPoint(x: startPoint2.x + dx2 * percentage2, y: startPoint2.y + dy2 * percentage2)
+
+            self.updateLine(lineView: self.lineView, start: startPoint1, end: adjustedEndPoint1)
+            self.updateLine(lineView: self.lineView2, start: startPoint2, end: adjustedEndPoint2)
+        }
+    }
+
+
+
+
+
+
+
+
 
 
     
     func setupLabels() {
         label1.translatesAutoresizingMaskIntoConstraints = false
         label2.translatesAutoresizingMaskIntoConstraints = false
-        
+        label1.tag = 1
+         label2.tag = 2
         // Porcentajes para posicionar label1 (valores entre 0 y 1)
         let label1XPercentage: CGFloat = 0.3
         let label1YPercentage: CGFloat = 1.8
@@ -130,12 +159,29 @@ class ViewController: UIViewController {
 
 
     @objc func labelTapped(_ sender: UITapGestureRecognizer) {
-        let alertController = UIAlertController(title: "Label presionado", message: "Se ha presionado una etiqueta", preferredStyle: .alert)
+        guard let label = sender.view as? UILabel else { return }
+        let selectedSegment = segmentedControl.selectedSegmentIndex
+        var message = ""
+
+        switch (label.tag, selectedSegment) {
+        case (1, 0): // Label 1 y filtro "first"
+            message = "Label 1 presionado con filtro 'first'"
+        case (1, 1): // Label 1 y filtro "second"
+            message = "Label 1 presionado con filtro 'second'"
+        case (2, 0): // Label 2 y filtro "first"
+            message = "Label 2 presionado con filtro 'first'"
+        case (2, 1): // Label 2 y filtro "second"
+            message = "Label 2 presionado con filtro 'second'"
+        default:
+            message = "Se ha presionado una etiqueta"
+        }
+
+        let alertController = UIAlertController(title: "Label presionado", message: message, preferredStyle: .alert)
         let action = UIAlertAction(title: "Cerrar", style: .default) { (action:UIAlertAction) in }
         alertController.addAction(action)
         self.present(alertController, animated: true, completion: nil)
     }
-    
+
     @IBAction func segmentedControlValueChanged(_ sender: UISegmentedControl) {
         switch sender.selectedSegmentIndex {
         case 0:
