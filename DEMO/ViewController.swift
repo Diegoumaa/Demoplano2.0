@@ -1,11 +1,12 @@
 import UIKit
-class ViewController: UIViewController {
-    
+
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var label1: UILabel!
     @IBOutlet weak var label2: UILabel!
     @IBOutlet weak var segmentedControl: UISegmentedControl!
-
+    @IBOutlet weak var tableView: UITableView!
     // Almacenar las restricciones de las etiquetas
      var label1LeadingConstraint: NSLayoutConstraint!
      var label1TopConstraint: NSLayoutConstraint!
@@ -22,11 +23,65 @@ class ViewController: UIViewController {
             setupLabels()
             setupLineView()
             setupLineView2()
+loadImage1()
+        tableView.delegate = self
+        tableView.dataSource = self
+              tableView.register(UITableViewCell.self, forCellReuseIdentifier: "InputCell")
+        tableView.allowsSelection = false
+        tableView.isScrollEnabled = false
 
-            loadImage1()
-            connectLabels()
+
     }
     
+    // MARK: - UITableViewDataSource
+
+    @objc func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // Devuelve el número de celdas que quieres mostrar
+        return 1
+    }
+
+    @objc func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "InputCell", for: indexPath)
+        
+        // Configurar las etiquetas y campos de entrada según tus necesidades
+        let label1 = UILabel()
+        label1.text = "Label 1"
+        label1.translatesAutoresizingMaskIntoConstraints = false
+        
+        let textField1 = UITextField()
+        textField1.placeholder = "Ingrese texto"
+        textField1.translatesAutoresizingMaskIntoConstraints = false
+        
+        let label2 = UILabel()
+        label2.text = "Label 2"
+        label2.translatesAutoresizingMaskIntoConstraints = false
+        
+        let textField2 = UITextField()
+        textField2.placeholder = "Ingrese texto"
+        textField2.translatesAutoresizingMaskIntoConstraints = false
+        
+        cell.contentView.addSubview(label1)
+        cell.contentView.addSubview(textField1)
+        cell.contentView.addSubview(label2)
+        cell.contentView.addSubview(textField2)
+        
+        NSLayoutConstraint.activate([
+            label1.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            label1.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8),
+            textField1.leadingAnchor.constraint(equalTo: label1.trailingAnchor, constant: 8),
+            textField1.topAnchor.constraint(equalTo: label1.topAnchor),
+            textField1.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
+            label2.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            label2.topAnchor.constraint(equalTo: label1.bottomAnchor, constant: 8),
+            textField2.leadingAnchor.constraint(equalTo: label2.trailingAnchor, constant: 8),
+            textField2.topAnchor.constraint(equalTo: label2.topAnchor),
+            textField2.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
+            textField2.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8)
+        ])
+        
+        return cell
+    }
+
     func setupImageView() {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -165,13 +220,13 @@ class ViewController: UIViewController {
 
         switch (label.tag, selectedSegment) {
         case (1, 0): // Label 1 y filtro "first"
-            message = "Label 1 presionado con filtro 'first'"
+            message = "cavina filtro1"
         case (1, 1): // Label 1 y filtro "second"
-            message = "Label 1 presionado con filtro 'second'"
+            message = "cavina filtro 2"
         case (2, 0): // Label 2 y filtro "first"
-            message = "Label 2 presionado con filtro 'first'"
+            message = "aleta filtro 1"
         case (2, 1): // Label 2 y filtro "second"
-            message = "Label 2 presionado con filtro 'second'"
+            message = "aleta filtro 2"
         default:
             message = "Se ha presionado una etiqueta"
         }
@@ -229,27 +284,43 @@ class ViewController: UIViewController {
     }
 
     func updateLabelPositions(label1XPercentage: CGFloat, label1YPercentage: CGFloat, label2XPercentage: CGFloat, label2YPercentage: CGFloat) {
-
-           // Desactivar las restricciones antiguas
-           label1LeadingConstraint?.isActive = false
-           label1TopConstraint?.isActive = false
-           label2TrailingConstraint?.isActive = false
-           label2TopConstraint?.isActive = false
-           
-           // Crear y activar las nuevas restricciones
-           label1LeadingConstraint = label1.leadingAnchor.constraint(equalTo: imageView.leadingAnchor, constant: imageView.bounds.width * label1XPercentage)
-           label1TopConstraint = label1.topAnchor.constraint(equalTo: imageView.topAnchor, constant: imageView.bounds.height * label1YPercentage)
-           label2TrailingConstraint = label2.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -imageView.bounds.width * (1 - label2XPercentage))
-           label2TopConstraint = label2.topAnchor.constraint(equalTo: imageView.topAnchor, constant: imageView.bounds.height * label2YPercentage)
-
-           label1LeadingConstraint.isActive = true
-           label1TopConstraint.isActive = true
-           label2TrailingConstraint.isActive = true
-           label2TopConstraint.isActive = true
-               
+        
+        var label1Text = ""
+        var label2Text = ""
+        switch segmentedControl.selectedSegmentIndex {
+        case 0:
+            label1Text = "cavina filtro1"
+            label2Text = "aleta filtro 1"
+        case 1:
+            label1Text = "cavina filtro 2"
+            label2Text = "aleta filtro 2"
+        default:
+            break
+        }
+        
+        // Asignar los nombres de las etiquetas correspondientes
+        label1.text = label1Text
+        label2.text = label2Text
+        
+        // Desactivar las restricciones antiguas
+        label1LeadingConstraint?.isActive = false
+        label1TopConstraint?.isActive = false
+        label2TrailingConstraint?.isActive = false
+        label2TopConstraint?.isActive = false
+        
+        // Crear y activar las nuevas restricciones
+        label1LeadingConstraint = label1.leadingAnchor.constraint(equalTo: imageView.leadingAnchor, constant: imageView.bounds.width * label1XPercentage)
+        label1TopConstraint = label1.topAnchor.constraint(equalTo: imageView.topAnchor, constant: imageView.bounds.height * label1YPercentage)
+        label2TrailingConstraint = label2.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -imageView.bounds.width * (1 - label2XPercentage))
+        label2TopConstraint = label2.topAnchor.constraint(equalTo: imageView.topAnchor, constant: imageView.bounds.height * label2YPercentage)
+        
+        label1LeadingConstraint.isActive = true
+        label1TopConstraint.isActive = true
+        label2TrailingConstraint.isActive = true
+        label2TopConstraint.isActive = true
+        
         view.layoutIfNeeded()
         connectLabels()
-
     }
 
 
